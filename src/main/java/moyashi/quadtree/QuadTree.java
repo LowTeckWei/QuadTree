@@ -14,7 +14,7 @@ import java.util.Map;
 import java.util.Queue;
 
 /**
- * 
+ *
  * @author Low Teck Wei
  * @param <T>
  */
@@ -104,10 +104,14 @@ public class QuadTree<T extends Leaf> {
         if (node != null) {
             node.collect(result, aabb);
         }
-        
+
         rectanglePool.offer(aabb);
-        
+
         return result;
+    }
+
+    public void render(QuadTreeRenderer renderer) {
+        root.render(renderer);
     }
 
     private void insert(QuadNode<T> node, Rectangle aabb, T leaf) {
@@ -151,7 +155,7 @@ public class QuadTree<T extends Leaf> {
         }
         return node;
     }
-    
+
     private Rectangle obtainRectangle(float minX, float minY, float width, float height) {
         Rectangle rect = rectanglePool.poll();
         if (rect == null) {
