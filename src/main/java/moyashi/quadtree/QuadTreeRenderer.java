@@ -5,11 +5,14 @@
  */
 package moyashi.quadtree;
 
+import java.util.List;
+
 /**
  *
  * @author Low Teck Wei
+ * @param <T>
  */
-public interface QuadTreeRenderer {
+public interface QuadTreeRenderer<T extends Leaf> {
     
-    public void render(Rectangle bounds);
+    public void render(Rectangle bounds, List<T> unmodifiableItems);
 }

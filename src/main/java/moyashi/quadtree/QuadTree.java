@@ -7,6 +7,7 @@ package moyashi.quadtree;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -88,7 +89,7 @@ public class QuadTree<T extends Leaf> {
             node.leafs.remove(leaf);
         }
     }
-
+    
     public List<T> search(List<T> result, float minX, float minY, float width, float height) {
         Rectangle aabb = obtainRectangle(minX, minY, width, height);
 
@@ -110,7 +111,7 @@ public class QuadTree<T extends Leaf> {
         return result;
     }
 
-    public void render(QuadTreeRenderer renderer) {
+    public void render(QuadTreeRenderer<T> renderer) {
         root.render(renderer);
     }
 
@@ -165,20 +166,21 @@ public class QuadTree<T extends Leaf> {
         return rect;
     }
 
-    private class QuadNode<T> {
+    private class QuadNode<T extends Leaf> {
 
         public int depth;
         public final Rectangle bounds;
         public QuadNode[] subtrees;
         public final List<T> leafs = new ArrayList<>(nodeCapacity);
-
+        public List<T> readOnlyLeafs;
+        
         public QuadNode(float minX, float minY, float width, float height, int depth) {
             bounds = obtainRectangle(minX, minY, width, height);
             this.depth = depth;
         }
 
-        public void render(QuadTreeRenderer renderer) {
-            renderer.render(bounds);
+        public void render(QuadTreeRenderer<T> renderer) {
+            renderer.render(bounds, readOnlyLeafs == null ? readOnlyLeafs = Collections.unmodifiableList(leafs) : readOnlyLeafs);
             if (subtrees != null) {
                 for (QuadNode node : subtrees) {
                     node.render(renderer);
@@ -186,7 +188,7 @@ public class QuadTree<T extends Leaf> {
             }
         }
 
-        @SuppressWarnings("element-type-mismatch") //This is impossible
+        @SuppressWarnings("element-type-mismatch") //This should be impossible
         public void collect(List<T> result, Rectangle aabb) {
             for (T t : leafs) {
                 if (aabbs.get(t).overlaps(aabb)) {
@@ -201,7 +203,7 @@ public class QuadTree<T extends Leaf> {
         }
 
         //Important note: Clear leafs without changing any meta.
-        @SuppressWarnings("element-type-mismatch") //This is impossible
+        @SuppressWarnings("element-type-mismatch") //This should be impossible
         public void empty() {
             for (T t : leafs) {
                 aabbs.remove(t);
