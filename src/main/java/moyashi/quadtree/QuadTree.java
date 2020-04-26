@@ -99,11 +99,12 @@ public class QuadTree<T extends Leaf> {
             if (index == SELF) {
                 break;
             }
+            node.collectSelf(result, aabb);
             node = node.subtrees == null ? null : node.subtrees[index];
         }
 
         if (node != null) {
-            node.collect(result, aabb);
+            node.collectAll(result, aabb);
         }
 
         rectanglePool.offer(aabb);
@@ -186,18 +187,22 @@ public class QuadTree<T extends Leaf> {
                     node.render(renderer);
                 }
             }
+        
         }
-
         @SuppressWarnings("element-type-mismatch") //This should be impossible
-        public void collect(List<T> result, Rectangle aabb) {
+        public void collectSelf(List<T> result, Rectangle aabb) {
             for (T t : leafs) {
                 if (aabbs.get(t).overlaps(aabb)) {
                     result.add(t);
                 }
             }
+        }
+        
+        public void collectAll(List<T> result, Rectangle aabb) {
+            collectSelf(result, aabb);
             if (subtrees != null) {
                 for (QuadNode node : subtrees) {
-                    node.collect(result, aabb);
+                    node.collectAll(result, aabb);
                 }
             }
         }
