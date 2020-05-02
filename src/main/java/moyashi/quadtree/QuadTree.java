@@ -147,7 +147,7 @@ public class QuadTree<T extends Leaf> {
 
     private LeafNode obtainLeafNodeIndex(T item) {
         int index = leafIndex.nextClearBit(0);
-        while (index <= leafPool.size()) {
+        while (index >= leafPool.size()) {
             leafPool.add(new LeafNode(leafPool.size()));
         }
         leafIndex.set(index);
