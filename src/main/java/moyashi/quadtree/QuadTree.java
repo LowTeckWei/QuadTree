@@ -161,7 +161,7 @@ public class QuadTree<T extends Leaf> {
 
     private TreeNode obtainTreeNodeIndex(int parent, float minX, float minY, float width, float height, int depth) {
         int index = treeIndex.nextClearBit(0);
-        while (index <= treePool.size()) {
+        while (index >= treePool.size()) {
             treePool.add(new TreeNode(treePool.size()));
         }
         treeIndex.set(index);
