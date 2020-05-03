@@ -104,7 +104,9 @@ public class QuadTree<T extends Leaf> {
                 break;
             }
             treeNode.collectSelf(result, targetAABB);
-            treeNode = treeNode.childs == null ? null : treePool.get(treeNode.childs[index]);
+            if (treeNode.childs == null || (treeNode = treePool.get(treeNode.childs[index])).size <= 0) {
+                treeNode = null;
+            }
         }
 
         if (treeNode != null) {
