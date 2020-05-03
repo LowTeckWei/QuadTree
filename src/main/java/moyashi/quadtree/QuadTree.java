@@ -234,6 +234,11 @@ public class QuadTree<T extends Leaf> {
                     .map(leafPool::get)
                     .map(node -> node.item)
                     .collect(Collectors.toList()));
+            if (childs != null) {
+                for (int child : childs) {
+                    treePool.get(child).render(renderer);
+                }
+            }
         }
 
         public void collectSelf(List<T> result, Rectangle aabb) {
