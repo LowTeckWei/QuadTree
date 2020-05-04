@@ -24,6 +24,13 @@ public class Rectangle {
         this.height = height;
     }
 
+    public void set(Rectangle other) {
+        this.minX = other.minX;
+        this.minY = other.minY;
+        this.width = other.width;
+        this.height = other.height;
+    }
+
     public void set(float minX, float minY, float width, float height) {
         this.minX = minX;
         this.minY = minY;
