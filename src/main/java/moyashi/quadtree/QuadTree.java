@@ -26,14 +26,14 @@ public class QuadTree<T extends Leaf> {
     private static final int LAYER_SIZE = 4, REINSERT_THRESHOLD = 3, ROOT_DEPTH = 0;
 
     private final BitSet treeIndex = new BitSet();
-    private final List<TreeNode> treePool = new ArrayList<>();
+    private final List<TreeNode<T>> treePool = new ArrayList<>();
 
     private final BitSet leafIndex = new BitSet();
-    private final List<LeafNode> leafPool = new ArrayList<>();
-    private final Map<T, LeafNode> leafMap = new HashMap<>();
+    private final List<LeafNode<T>> leafPool = new ArrayList<>();
+    private final Map<T, LeafNode<T>> leafMap = new HashMap<>();
 
     private final int nodeCapacity;
-    private TreeNode root;
+    private TreeNode<T> root;
     private final Rectangle bufferRectangle = new Rectangle();
     private final List<T> bufferItems = new ArrayList<>();
 
@@ -46,7 +46,7 @@ public class QuadTree<T extends Leaf> {
     public void insert(T leaf) {
 
         //If leaf node exists update bounds else create
-        LeafNode leafNode = leafMap.get(leaf);
+        LeafNode<T> leafNode = leafMap.get(leaf);
         if (leafNode == null) {
             leafMap.put(leaf, leafNode = obtainLeafNodeIndex(leaf));
         } else {
@@ -57,18 +57,18 @@ public class QuadTree<T extends Leaf> {
         if (leafNode.treeNode != null) {
 
             //If within, don't need to insert from root
-            TreeNode treeNode = leafNode.treeNode;
+            TreeNode<T> treeNode = leafNode.treeNode;
             if (treeNode.depth > REINSERT_THRESHOLD && treeNode.bounds.contains(leafNode.bounds)) {
                 int index = treeNode.indexOf(leafNode.bounds);
                 if (index != SELF) {
-                    treeNode.leafs.remove(leafNode.index);
+                    treeNode.leafs.remove(leafNode);
                     treeNode.childs[index].insert(leafNode);
                 }
                 return;
             }
 
             //Remove and update size
-            treeNode.leafs.remove(leafNode.index);
+            treeNode.leafs.remove(leafNode);
             do {
                 treeNode.size--;
                 treeNode = treeNode.parent;
@@ -79,10 +79,10 @@ public class QuadTree<T extends Leaf> {
     }
 
     public void remove(T leaf) {
-        LeafNode leafNode = leafMap.remove(leaf);
+        LeafNode<T> leafNode = leafMap.remove(leaf);
         if (leafNode != null) {
-            TreeNode treeNode = leafNode.treeNode;
-            treeNode.leafs.remove(leafNode.index);
+            TreeNode<T> treeNode = leafNode.treeNode;
+            treeNode.leafs.remove(leafNode);
             do {
                 treeNode.size--;
                 treeNode = treeNode.parent;
@@ -131,32 +131,32 @@ public class QuadTree<T extends Leaf> {
         leafMap.keySet().forEach(this::insert);
     }
 
-    private LeafNode obtainLeafNodeIndex(T item) {
+    private LeafNode<T> obtainLeafNodeIndex(T item) {
         int index = leafIndex.nextClearBit(0);
         while (index >= leafPool.size()) {
-            leafPool.add(new LeafNode(leafPool.size()));
+            leafPool.add(new LeafNode<>(leafPool.size()));
         }
         leafIndex.set(index);
 
-        LeafNode leafNode = leafPool.get(index);
+        LeafNode<T> leafNode = leafPool.get(index);
         leafNode.item = item;
         leafNode.treeNode = null;
         leafNode.bounds.set(item.getMinX(), item.getMinY(), item.getWidth(), item.getHeight());
         return leafNode;
     }
 
-    private TreeNode obtainTreeNodeIndex(float minX, float minY, float width, float height, int depth) {
+    private TreeNode<T> obtainTreeNodeIndex(float minX, float minY, float width, float height, int depth) {
         return obtainTreeNodeIndex(null, minX, minY, width, height, depth);
     }
 
-    private TreeNode obtainTreeNodeIndex(TreeNode parent, float minX, float minY, float width, float height, int depth) {
+    private TreeNode<T> obtainTreeNodeIndex(TreeNode parent, float minX, float minY, float width, float height, int depth) {
         int index = treeIndex.nextClearBit(0);
         while (index >= treePool.size()) {
-            treePool.add(new TreeNode(this, treePool.size()));
+            treePool.add(new TreeNode<>(this, treePool.size()));
         }
         treeIndex.set(index);
 
-        TreeNode treeNode = treePool.get(index);
+        TreeNode<T> treeNode = treePool.get(index);
         treeNode.parent = parent;
         treeNode.depth = depth;
         treeNode.bounds.set(minX, minY, width, height);
@@ -169,7 +169,7 @@ public class QuadTree<T extends Leaf> {
     private static class LeafNode<T extends Leaf> {
 
         public final int index;
-        public TreeNode treeNode;
+        public TreeNode<T> treeNode;
         public final Rectangle bounds = new Rectangle();
         public T item;
 
@@ -182,8 +182,8 @@ public class QuadTree<T extends Leaf> {
 
         public final QuadTree<T> root;
         public final int index;
-        public TreeNode parent;
-        public TreeNode[] childs;
+        public TreeNode<T> parent;
+        public TreeNode<T>[] childs;
         public int depth, size;
         private final Rectangle bounds = new Rectangle();
         private final Set<LeafNode<T>> leafs = new HashSet<>();
@@ -203,15 +203,15 @@ public class QuadTree<T extends Leaf> {
                 visitor.visit(root.bufferRectangle, root.bufferItems);
                 root.bufferItems.clear();
                 if (childs != null) {
-                    for (TreeNode child : childs) {
+                    for (TreeNode<T> child : childs) {
                         child.traverse(visitor);
                     }
                 }
             }
         }
 
-        public void insert(LeafNode leafNode) {
-            TreeNode treeNode = this;
+        public void insert(LeafNode<T> leafNode) {
+            TreeNode<T> treeNode = this;
             while (treeNode.childs != null) {
                 int childIndex = treeNode.indexOf(leafNode.bounds);
                 if (childIndex == SELF) {
@@ -227,8 +227,8 @@ public class QuadTree<T extends Leaf> {
 
             if (treeNode.childs == null && treeNode.leafs.size() > root.nodeCapacity) {
                 treeNode.split();
-                for (Iterator<LeafNode> it = treeNode.leafs.iterator(); it.hasNext();) {
-                    LeafNode t = it.next();
+                for (Iterator<LeafNode<T>> it = treeNode.leafs.iterator(); it.hasNext();) {
+                    LeafNode<T> t = it.next();
                     int childIndex = treeNode.indexOf(t.bounds);
                     if (childIndex != SELF) {
                         it.remove();
@@ -239,7 +239,7 @@ public class QuadTree<T extends Leaf> {
         }
 
         public List<T> search(List<T> result, Rectangle targetAABB) {
-            TreeNode treeNode = this;
+            TreeNode<T> treeNode = this;
             while (treeNode != null) {
                 int childIndex = treeNode.indexOf(targetAABB);
                 if (childIndex == SELF) {
@@ -272,7 +272,7 @@ public class QuadTree<T extends Leaf> {
             if (size > 0) {
                 collectSelf(result, aabb);
                 if (childs != null) {
-                    for (TreeNode child : childs) {
+                    for (TreeNode<T> child : childs) {
                         child.collectAll(result, aabb);
                     }
                 }
