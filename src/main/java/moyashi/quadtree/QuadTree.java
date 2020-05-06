@@ -185,8 +185,8 @@ public class QuadTree<T extends Leaf> {
         public TreeNode<T> parent;
         public TreeNode<T>[] childs;
         public int depth, size;
-        private final Rectangle bounds = new Rectangle();
-        private final Set<LeafNode<T>> leafs = new HashSet<>();
+        public final Rectangle bounds = new Rectangle();
+        public final Set<LeafNode<T>> leafs = new HashSet<>();
 
         public TreeNode(QuadTree<T> root, int index) {
             this.root = root;
