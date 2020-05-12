@@ -44,14 +44,7 @@ public class QuadTree<T extends Leaf> {
 
     //Also functions as an update
     public void insert(T leaf) {
-
-        //If leaf node exists update bounds else create
-        LeafNode<T> leafNode = leafMap.get(leaf);
-        if (leafNode == null) {
-            leafMap.put(leaf, leafNode = obtainLeafNodeIndex(leaf));
-        } else {
-            leafNode.bounds.set(leaf.getMinX(), leaf.getMinY(), leaf.getWidth(), leaf.getHeight());
-        }
+        LeafNode<T> leafNode = getLeafNode(leaf);
 
         //If leaf already exists, check if need to reinsert.
         if (leafNode.treeNode != null) {
@@ -122,7 +115,7 @@ public class QuadTree<T extends Leaf> {
         treeIndex.clear();
         leafIndex.clear();
         root = obtainTreeNodeIndex(minX, minY, width, height, ROOT_DEPTH);
-        leafMap.replaceAll((key, value) -> obtainLeafNodeIndex(key));
+        leafMap.replaceAll((key, value) -> obtainLeafNode(key));
         leafMap.keySet().forEach(this::insert);
     }
 
@@ -131,7 +124,17 @@ public class QuadTree<T extends Leaf> {
         leafMap.keySet().forEach(this::insert);
     }
 
-    private LeafNode<T> obtainLeafNodeIndex(T item) {
+    private LeafNode<T> getLeafNode(T leaf) {
+        LeafNode<T> leafNode = leafMap.get(leaf);
+        if (leafNode == null) {
+            leafMap.put(leaf, leafNode = obtainLeafNode(leaf));
+        } else {
+            leafNode.bounds.set(leaf.getMinX(), leaf.getMinY(), leaf.getWidth(), leaf.getHeight());
+        }
+        return leafNode;
+    }
+    
+    private LeafNode<T> obtainLeafNode(T item) {
         int index = leafIndex.nextClearBit(0);
         while (index >= leafPool.size()) {
             leafPool.add(new LeafNode<>(leafPool.size()));
@@ -146,10 +149,10 @@ public class QuadTree<T extends Leaf> {
     }
 
     private TreeNode<T> obtainTreeNodeIndex(float minX, float minY, float width, float height, int depth) {
-        return obtainTreeNodeIndex(null, minX, minY, width, height, depth);
+        return obtainTreeNode(null, minX, minY, width, height, depth);
     }
 
-    private TreeNode<T> obtainTreeNodeIndex(TreeNode parent, float minX, float minY, float width, float height, int depth) {
+    private TreeNode<T> obtainTreeNode(TreeNode parent, float minX, float minY, float width, float height, int depth) {
         int index = treeIndex.nextClearBit(0);
         while (index >= treePool.size()) {
             treePool.add(new TreeNode<>(this, treePool.size()));
@@ -306,10 +309,10 @@ public class QuadTree<T extends Leaf> {
             float halfWidth = bounds.width / 2;
             float halfHeight = bounds.height / 2;
             childs = new TreeNode[LAYER_SIZE];
-            childs[NE] = root.obtainTreeNodeIndex(this, bounds.minX + halfWidth, bounds.minY + halfHeight, halfWidth, halfHeight, depth + 1);
-            childs[NW] = root.obtainTreeNodeIndex(this, bounds.minX, bounds.minY + halfHeight, halfWidth, halfHeight, depth + 1);
-            childs[SE] = root.obtainTreeNodeIndex(this, bounds.minX + halfWidth, bounds.minY, halfWidth, halfHeight, depth + 1);
-            childs[SW] = root.obtainTreeNodeIndex(this, bounds.minX, bounds.minY, halfWidth, halfHeight, depth + 1);
+            childs[NE] = root.obtainTreeNode(this, bounds.minX + halfWidth, bounds.minY + halfHeight, halfWidth, halfHeight, depth + 1);
+            childs[NW] = root.obtainTreeNode(this, bounds.minX, bounds.minY + halfHeight, halfWidth, halfHeight, depth + 1);
+            childs[SE] = root.obtainTreeNode(this, bounds.minX + halfWidth, bounds.minY, halfWidth, halfHeight, depth + 1);
+            childs[SW] = root.obtainTreeNode(this, bounds.minX, bounds.minY, halfWidth, halfHeight, depth + 1);
         }
     }
 }
