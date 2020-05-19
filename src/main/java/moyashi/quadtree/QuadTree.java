@@ -126,6 +126,10 @@ public class QuadTree<T extends Leaf> {
         leafMap.keySet().forEach(this::insert);
     }
 
+    public float size() {
+        return root == null ? 0 : root.size;
+    }
+    
     private LeafNode<T> getLeafNode(T leaf) {
         LeafNode<T> leafNode = leafMap.get(leaf);
         if (leafNode == null) {
