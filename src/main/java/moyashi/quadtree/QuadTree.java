@@ -285,23 +285,25 @@ public class QuadTree<T extends Leaf> {
         }
 
         public int indexOf(Rectangle aabb) {
-            float midX = bounds.minX + bounds.width / 2;
-            float midY = bounds.minY + bounds.height / 2;
-            boolean east = aabb.minX > midX;
-            boolean west = aabb.minX + aabb.width < midX;
-            boolean north = aabb.minY > midY;
-            boolean south = aabb.minY + aabb.height < midY;
-            if (north) {
-                if (east) {
-                    return NE;
-                } else if (west) {
-                    return NW;
-                }
-            } else if (south) {
-                if (east) {
-                    return SE;
-                } else if (west) {
-                    return SW;
+            if (bounds.contains(aabb)) {
+                float midX = bounds.minX + bounds.width / 2;
+                float midY = bounds.minY + bounds.height / 2;
+                boolean east = aabb.minX > midX;
+                boolean west = aabb.minX + aabb.width < midX;
+                boolean north = aabb.minY > midY;
+                boolean south = aabb.minY + aabb.height < midY;
+                if (north) {
+                    if (east) {
+                        return NE;
+                    } else if (west) {
+                        return NW;
+                    }
+                } else if (south) {
+                    if (east) {
+                        return SE;
+                    } else if (west) {
+                        return SW;
+                    }
                 }
             }
             return SELF;
