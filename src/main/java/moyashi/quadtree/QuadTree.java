@@ -51,11 +51,13 @@ public class QuadTree<T extends Leaf> {
 
             //If within, don't need to insert from root
             TreeNode<T> treeNode = leafNode.treeNode;
-            if (treeNode.depth > REINSERT_THRESHOLD && treeNode.bounds.contains(leafNode.bounds) && treeNode.childs != null) {
-                int index = treeNode.indexOf(leafNode.bounds);
-                if (index != SELF) {
-                    treeNode.leafs.remove(leafNode);
-                    treeNode.childs[index].insert(leafNode);
+            if (treeNode.depth > REINSERT_THRESHOLD && treeNode.bounds.contains(leafNode.bounds)) {
+                if (treeNode.childs != null) {
+                    int index = treeNode.indexOf(leafNode.bounds);
+                    if (index != SELF) {
+                        treeNode.leafs.remove(leafNode);
+                        treeNode.childs[index].insert(leafNode);
+                    }
                 }
                 return;
             }
@@ -133,7 +135,7 @@ public class QuadTree<T extends Leaf> {
         }
         return leafNode;
     }
-    
+
     private LeafNode<T> obtainLeafNode(T item) {
         int index = leafIndex.nextClearBit(0);
         while (index >= leafPool.size()) {
